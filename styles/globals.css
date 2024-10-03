@@ -1,0 +1,49 @@
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+html,
+body {
+  /* display: flex; */
+  /* flex-direction: column; */
+  /* justify-content: center; */
+  /* align-items: center; */
+  height: 100%;
+  width: 100%;
+}
+
+/* reactQuill css 스타일 적용 */
+/* CSS 순서상 style이 존재해 !important를 해줘야 css 적용됨 */
+
+.ql-toolbar {
+  border: 2px solid #bec0c4 !important;
+  border-radius: 15px 15px 0 0;
+  border-bottom: none !important;
+}
+
+.ql-container {
+  border: 2px solid #bec0c4 !important;
+  border-top: 1px solid lightgray !important;
+  border-radius: 0 0 15px 15px;
+}
+
+/* .ql-snow {
+  background-color: red;
+} */
+
+/* .ql-container:focus {
+  border: 1px solid red !important;
+} */
+
+/* .ql-container:focus-within,
+.ql-toolbar:focus-within {
+  border: 2px solid #0064ff !important;
+  border-top: none !important;
+} */
+
+/* 4/5/금 */
+/* reactQuill focus 하면 border 테두리 색상 변경이 안됨 hover은 됨 */
+/* 또한 toolbar의 border 테두리 색상도 같이 변경이 되어야 함 */
+/* 게시글 등록 완성하고 등록시 BoardList의 내가 작성한 게시글이 refetch 안됨 */
+/* (따로 세로고침을 해줘야 함) */

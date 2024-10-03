@@ -1,0 +1,202 @@
+import {
+  ApolloClient,
+  ApolloLink,
+  ApolloProvider,
+  InMemoryCache,
+} from "@apollo/client";
+import { createUploadLink } from "apollo-upload-client";
+
+interface IApolloSetting {
+  children: JSX.Element;
+}
+const GLOBAL_STATE = new InMemoryCache();
+
+export default function ApolloSetting(props: IApolloSetting): JSX.Element {
+  const uploadLink = createUploadLink({
+    uri: "https://backend-practice.codebootcamp.co.kr/graphql",
+  });
+  const client = new ApolloClient({
+    link: ApolloLink.from([uploadLink]),
+
+    cache: GLOBAL_STATE,
+  });
+  console.log("ApolloSetting 실행됨");
+
+  return <ApolloProvider client={client}>{props.children}</ApolloProvider>;
+}
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+import {
+  ApolloClient,
+  ApolloLink,
+  ApolloProvider,
+  InMemoryCache,
+  fromPromise,
+} from "@apollo/client";
+import { createUploadLink } from "apollo-upload-client";
+import { useRecoilState, useRecoilValueLoadable } from "recoil";
+import {
+  isAccessToken,
+  restoreAccessTokenLoadable,
+} from "../../../commons/stores";
+
+import { onError } from "@apollo/client/link/error";
+import {} from "graphql-request";
+import { getAccessToken } from "../../../commons/libraries/getAccessToken";
+import { useEffect } from "react";
+
+// {props.children} 의 타입을 말함
+interface IApolloSetting {
+  children: JSX.Element;
+}
+// router.push로 리렌더링이 일어나도 createUploadLink에서 API 요청 안함 - ApolloSetting 함수 밖에 변수 선언
+const GLOBAL_STATE = new InMemoryCache();
+
+export default function ApolloSetting(props: IApolloSetting): JSX.Element {
+  // accessToken 전역변수에 저장할 공간
+  const [accessToken, setAccessToken] = useRecoilState(isAccessToken);
+  const restoreAccessToken = useRecoilValueLoadable(restoreAccessTokenLoadable);
+
+  useEffect(() => {
+    void restoreAccessToken.toPromise().then((newAccessToken) => {
+      setAccessToken(newAccessToken ?? "");
+    });
+  }, []);
+
+  // graphql 링크 연결
+  const uploadLink = createUploadLink({
+    uri: "https://backend-practice.codebootcamp.co.kr/graphql",
+    // 토큰을 API 요청할 때마다 body가 아닌 header에 담아 요청
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+    // 쿠키 헤더에 저장되어있는 토큰을 포함해서 API 요청
+    // 보안상 로컬,세션스토리지에 저장을 하지 않음
+    // 아래 설명확인
+    credentials: "include",
+  });
+
+  // accessToken 에러 - uploadLink 앞에 link가 들어가야함
+  // 1. graphQLErrors = 에러가 잡히면 들어오는 곳
+  //    - unauthenticated가 있는지 확인(없어야 함)
+  //    - 해당 graphQLErrors의 배열의 각 요소의 타입은 undefined여야 에러가 없다는 뜻
+  // 2. operation = 실패한 query가 들어오는 곳
+  // 3. forward = 실패했던걸 수정을 통해 재요청 하는 곳
+  const errorLink = onError(({ graphQLErrors, operation, forward }) => {
+    // 1. 에러를 캐치
+    if (typeof graphQLErrors !== "undefined") {
+      // for문을 통해 graphQLErrors의 에러를 err에 담는다.
+      for (const err of graphQLErrors) {
+        // 에러코드가 UNAUTHENTICATED면 토큰만료라는 뜻
+        if (err.extensions.code === "UNAUTHENTICATED") {
+          // 2. refreshToken으로 accessToken을 재발급 받기
+          // use로 시작하는 useMutation은 사용을 할 수 없다.
+          // client에서 세팅이 전달이 된 이후에 즉 {props.children}에서만 사용이 가능함
+          // 그래서 아직 errorLink는 셋팅 중이다.
+          // use없이 refreshToken API 요청을 보내야 하는데 npm에 graphql-request가 있다.
+          // yarn add graphql-request graphql
+          // 예제에서는 React/class/src/commons/libraries/getAccessToken.ts에 분리함
+          // 재사용성 많음!
+          return fromPromise(
+            // getAccessToken()함수가 성공하면 반환값을 .then((newAccessToken))에 담아
+            // setAccessToken에 수정을 한다.
+            getAccessToken().then((newAccessToken) => {
+              setAccessToken(newAccessToken ?? "");
+              // getContext: 가져오는 것
+              // setContext: 수정하는 것
+              operation.setContext({
+                headers: {
+                  // 기존 헤더의 내용을 가져온다.
+                  ...operation.getContext().headers,
+                  // 만료된 토큰을 newAccessToken으로 새로운 토큰으로 변경
+                  Authorization: `Bearer ${newAccessToken}`,
+                },
+              });
+            })
+            // 3. 재발급 받은 accessToken으로 방금 실패한 쿼리 재요청하기
+            // 수정을 operation.setContext 통해 headers를 수정한 내용을
+            // 쿼리 재요청하기
+            // flatMap() :이러한 내용을 매번 재 실행하기 위함
+            // forward : 쿼리문을 재요청하기 위함
+            // 즉 flatMap을 통해 매번 forward의 쿼리문을 재요청
+          ).flatMap(() => forward(operation));
+        }
+      }
+    }
+  });
+
+  const client = new ApolloClient({
+    link: ApolloLink.from([errorLink, uploadLink]),
+
+    // 캐시하고 같은 데이터 요청시 최신 데이터 요청하지 않고 사용
+    cache: GLOBAL_STATE,
+  });
+  console.log("ApolloSetting 실행됨");
+
+  // prettier-ignore
+  return (
+    <ApolloProvider client={client}>
+      {props.children}
+    </ApolloProvider>
+  )
+}
+
+// 🎈🎈🎈🎈🎈🎈🎈🎈🎈🎈🎈🎈🎈🎈🎈🎈🎈🎈🎈🎈🎈🎈🎈🎈🎈🎈🎈🎈🎈🎈🎈🎈
+// 쿠키의 credentials: "include" 설명:
+// 1. uploadLink, getAccessToken()에 credentials: "include"가 사용이 됐는데
+// 2. 결론을 먼저 설명을 하자면 해당 기능은 로그인 상태 유지, refreshToken을 하는데 필요하다.
+// 3. uploadLink에 사용된 credentials: "include"는 다음과 같다.
+//   - 해당 url로 accessToken을 담아 요청을 하는데 지속적인 로그인 유지가 필요할 때
+//   - 즉 페이지 이동, 새로고침 등으로 매번 로그인을 할 필요가 없어진다.
+// 4. getAccessToken()에도 사용이 되는데 다음과 같다.
+//   - graphql에서의 restoreToken이라는 API 요청에는 쿠키의 credentials: "include"가
+//   - 있어야 restoreToken의 API 요청을 할 수 있게 도와준다.
+//   - 즉 accessToken 재발급이 필요한 경우 쿠키의 refreshToken을 사용해야하는데 이는
+//   - credentials: "include"를 사용을 해야한다.
+// 5. 따라서 쿠키의 credentials: "include"의 기능은
+//   5-1
+//    - 로그인을 하면 accessToken이 발급이 되는데 해당 토큰만료, 사라짐으로
+//    -    매번 로그인을 해줘야하는 불편함을 해결할 수 있다.
+//   5-2
+//    - 토큰만료, 사라짐으로 해당 토큰을 재발급 받아야 하는데 해당 restoreToken의 API 사용
+//    - 하기 위해서는 쿠키의 refreshToken이 필요하다 그러기 위해서 credentials: "include"를
+//    - 사용한 이유이다.
+//
+// ChatGPT님 답변 ㅎㅎ
+// 1. uploadLink에서 credentials: "include" 사용:
+//   - uploadLink에서 credentials: "include"를 사용하면,
+//   - 요청에 쿠키가 포함되어 서버에 전송됩니다.
+//   - 이는 사용자의 로그인 상태를 유지하고, 페이지 이동이나 새로고침 등으로 인해
+//   - 매번 로그인을 다시 하지 않아도 되도록 도와줍니다.
+//
+// 2. getAccessToken()에서 credentials: "include" 사용:
+//   - getAccessToken() 함수에서도 마찬가지로 credentials: "include"를 사용하여
+//   - GraphQL API로 요청을 보냅니다. 이는 restoreToken API와 같이,
+//   - accessToken을 재발급 받아야 할 경우 쿠키에 저장된 refreshToken을 사용할 수 있도록 해준다.
+//
+// 3. 쿠키의 credentials: "include"의 기능:
+//   - 로그인 상태 유지: 사용자가 로그인한 상태에서 페이지를 이동하거나 새로고침을 해도
+//   - 매번 로그인을 다시 할 필요가 없도록 합니다.
+//
+//   - accessToken 재발급: accessToken이 만료되면 refreshToken을 사용하여
+//   - 새로운 accessToken을 얻을 수 있도록 합니다.
+//   - 이를 통해 사용자는 자동 로그인 상태를 유지할 수 있습니다.
+
+// 🎈2024.06.15.토 /
+// restoreToken을 graphql-request를 통해 비동기로 재발급받도록 했음
+// 이는 client가 생성되기 전 use를 사용하지 못해 useMutation을 통해
+// restoreToken API 요청을 못했음
+
+// 해야할 것:
+// 1. accessToken을 받는 API 즉 로그인 구현
+// 2. 회원가입으로 이메일/비번 생성 구현
+// 3. 로그인으로만 들어갈 수 있는 페이지 구현
+//
+//
+// 🎈2024.06.17.월 /
+// 해야할 것:
+// 1. accessToken을 받는 API 즉 로그인 구현
+// 2. 회원가입으로 이메일/비번 생성 구현
+// 3. 로그인으로만 들어갈 수 있는 페이지 구현
