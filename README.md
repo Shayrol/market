@@ -17,9 +17,11 @@ header
 로고, 로그인 및 회원가입을 구성 했습니다.
 
 > 로그인 시 헤더
+
 ![헤더01](https://github.com/user-attachments/assets/ed536b0a-7f01-4ea1-8183-5f3e87d0107e) 
 
 > 유저 정보 모달
+
 ![헤더02](https://github.com/user-attachments/assets/3833e25c-2225-494e-9788-8540181b8ae0)
 프로필, 충전, 로그아웃을 할 수 있으며 포트원을 통해 충전을 할 수 있습니다.
 
