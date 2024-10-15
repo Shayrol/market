@@ -15,7 +15,9 @@ Layout을 통해 header, navigation, banner를 사용했습니다.
 
 header
 로고, 로그인 및 회원가입을 구성 했습니다.
-![헤더01](https://github.com/user-attachments/assets/ed536b0a-7f01-4ea1-8183-5f3e87d0107e) ![헤더01](https://github.com/user-attachments/assets/df327a88-3825-4384-958c-22299c083d94)
+![헤더01](https://github.com/user-attachments/assets/ed536b0a-7f01-4ea1-8183-5f3e87d0107e) 
+![헤더02](https://github.com/user-attachments/assets/3833e25c-2225-494e-9788-8540181b8ae0)
+
 
 
 ```bash
