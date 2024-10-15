@@ -16,8 +16,7 @@ Layout을 통해 header, navigation, banner를 사용했습니다.
 header
 로고, 로그인 및 회원가입을 구성 했습니다.
 
-> 로그인 시 헤더
-
+- 로그인 시 헤더
 ![헤더01](https://github.com/user-attachments/assets/ed536b0a-7f01-4ea1-8183-5f3e87d0107e) 
 
 > 유저 정보 모달
