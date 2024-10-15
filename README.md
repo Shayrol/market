@@ -15,9 +15,30 @@ Layout을 통해 header, navigation, banner를 사용했습니다.
 
 header
 로고, 로그인 및 회원가입을 구성 했습니다.
-![헤더01](https://github.com/user-attachments/assets/ed536b0a-7f01-4ea1-8183-5f3e87d0107e) 
-![헤더02](https://github.com/user-attachments/assets/3833e25c-2225-494e-9788-8540181b8ae0)
 
+> 로그인 시 헤더
+![헤더01](https://github.com/user-attachments/assets/ed536b0a-7f01-4ea1-8183-5f3e87d0107e) 
+
+> 유저 정보 모달
+![헤더02](https://github.com/user-attachments/assets/3833e25c-2225-494e-9788-8540181b8ae0)
+프로필, 충전, 로그아웃을 할 수 있으며 포트원을 통해 충전을 할 수 있습니다.
+
+> 중고마켓
+![마켓01](https://github.com/user-attachments/assets/2ca2d434-4e16-4ab8-944b-ff78df4a773e)
+로그인 이후 검색어로 "맥북" 검색한 상태
+
+> 중고마켓 상세
+![마켓02](https://github.com/user-attachments/assets/735633e0-485e-40a4-80b8-2fdd26b753d4)
+상품의 상세 내용이 담겨 있습니다. 상품 정보, 거래 장소, 찜 기능, 구매하기 버튼 등이 구성되어 있습니다.
+
+> 중고마켓 등록
+![마켓03](https://github.com/user-attachments/assets/84bb5ee2-3682-4bcc-9939-05de68cfcf53)
+제목, 내용, 가격, 태그, 위치, 이미지 등 성정할 수 있으며 해당 상품을 등록 할 수 있습니다.
+
+> 마이페이지
+![마이페이지01](https://github.com/user-attachments/assets/85e7fc2c-21f2-4988-bf34-987bfd643806)
+![마이페이지02](https://github.com/user-attachments/assets/5b7cc24c-553e-44ab-ae3a-ac24588f55a4)
+![마이페이지03](https://github.com/user-attachments/assets/8f33d7fc-0829-4952-a277-34f2fd4ff861)
 
 
 ```bash
